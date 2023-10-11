@@ -1,10 +1,8 @@
 package Article.controller;
 
-import Article.model.Article;
-import Article.model.ArticleDao;
+import Article.model.*;
 import Article.view.ArticleView;
 
-import java.lang.reflect.Member;
 import java.util.ArrayList;
 import java.util.Scanner;
 
@@ -14,14 +12,23 @@ public class ArticleController {
     ArticleDao articleDao = new ArticleDao();
     ArticleView articleView = new ArticleView();
 
-    public void add() {
-        System.out.print("게시물 제목을 입력해주세요 : ");
-        String title = scan.nextLine();
+    public void add(Member membersession) {
 
-        System.out.print("게시물 내용을 입력해주세요 : ");
-        String contents = scan.nextLine();
+        // 클래스를 어떻게 연결하느냐에 따라서 변수 라이프사이클 주기와 연결방식이 달라짐
 
-        articleDao.insert(title, contents);
+        if (membersession == null) {
+            System.out.println("게시물은 회원만 작성할 수 있습니다.");
+        } else {
+            System.out.print("게시물 제목을 입력해주세요 : ");
+            String title = scan.nextLine();
+            System.out.println("당신이 입력한 제목은 : " + title);
+
+            System.out.print("게시물 내용을 입력해주세요 : ");
+            String contents = scan.nextLine();
+            System.out.println("당신이 입력한 내용은 : " + contents);
+
+            articleDao.insert(membersession.getMemberId(), title, contents);
+        }
     }
 
     public void list() {
@@ -35,19 +42,15 @@ public class ArticleController {
         System.out.print("수정할 게시글 번호를 입력해주세요 : ");
 
         int articleIdx = getParamInt(scan.nextLine(), -1);
-        int targetid = articleDao.findById(articleIdx);
 
-        if (targetid == -1) {
-            System.out.println("해당 게시글이 존재하지 않습니다.");
-        } else {
-            System.out.print("수정할 제목을 입력해주세요 : ");
-            String title = scan.nextLine();
+        System.out.print("수정할 제목을 입력해주세요 : ");
+        String title = scan.nextLine();
 
-            System.out.print("수정할 내용을 입력해주세요 : ");
-            String content = scan.nextLine();
+        System.out.print("수정할 내용을 입력해주세요 : ");
+        String content = scan.nextLine();
 
-            articleDao.modify(targetid, title, content);;
-        }
+        articleDao.modify(articleIdx, title, content);
+
     }
 
     public void delete() {
@@ -55,13 +58,10 @@ public class ArticleController {
         System.out.print("몇 번 주소록을 삭제하시겠습니까? : ");
 
         int articleIdx = getParamInt(scan.nextLine(), -1);
-        int targetid = articleDao.findById(articleIdx);
+        Article article = articleDao.findById(articleIdx);
 
-        if (targetid == -1) {
-            System.out.println("해당 게시글이 존재하지 않습니다.");
-        } else {
-            articleDao.delete(targetid);
-        }
+        articleDao.delete(article);
+
     }
 
     public void search() {
@@ -72,6 +72,37 @@ public class ArticleController {
 
         articleView.printArticles(articlelist);
         articlelist.clear();
+    }
+
+    public void detail(Member sessionmember) {
+
+        if (sessionmember == null) {
+            System.out.println("상세보기는 회원만 가능합니다. 로그인 해주세요.");
+
+        } else {
+
+            System.out.print("상세보기 할 게시물 번호를 입력해주세요 : ");
+
+            int articleIdx = getParamInt(scan.nextLine(), -1);
+            Article article = articleDao.findById(articleIdx);
+
+            // 상세보기 할 때 조회수 증가
+//                int checkcount = article.getCount();
+//                checkcount++;
+//                article.setCount(checkcount);
+//
+//                Member member = memberDao.getMemberById(sessionmember.getMemberId());
+//                ArticleView.printArticleDetail(article, member);
+
+            // DetailOption(article, member, comments);
+
+        }
+    }
+
+    public void sort() {
+    }
+
+    public void page() {
     }
 
     public int getParamInt(String input, int defaultvalue) {

@@ -46,7 +46,7 @@ public class ArticleDao {
         return conn;
     }
 
-    public void insert(String title, String content) {
+    public void insert(String memberid, String title, String content) {
 
         Connection conn = null;
         Statement stmt = null; // SQL 전송하는 객체
@@ -58,7 +58,6 @@ public class ArticleDao {
             stmt = conn.createStatement();
 
             // 유저 아이디는 임시정보 입니다. 향후 교체되어야함 //
-            String memberid = "tester";
 
             String sql = String.format("INSERT INTO article (memberid, title, content, createtime, modifytime, cnt) " +
                     "VALUES ('%s', '%s', '%s', '%s', '%s', '%d' )", memberid, title, content, Util.getCurrentTime(), Util.getCurrentTime(), 0);
@@ -141,27 +140,38 @@ public class ArticleDao {
 
     }
 
-    public int findById(int postidx) {
+    public Article findById(int postidx) {
 
         Connection conn = null;
         Statement stmt = null;
         ResultSet rs = null;
-
-        int targetidx = -1;
+        Article article = null;
 
         try {
-
             conn = loginDBServer();
             stmt = conn.createStatement();
 
-            //4. SQL 처리하고 결과 ResultSet에 받아오기
             String sql = String.format("SELECT * FROM article WHERE articleindex = %d", postidx);
             rs = stmt.executeQuery(sql);
 
             if (!rs.next()) {
-                return targetidx;
+                System.out.println("입력한 번호에 해당하는 게시글이 없습니다.");
+            } else {
+                while (true) {
+                    int listid = rs.getInt("articleindex");
+                    String memberid = rs.getString("memberid");
+                    String title = rs.getString("title");
+                    String contents = rs.getString("content");
+                    String createtime = rs.getString("createtime");
+                    String modifytime = rs.getString("modifytime");
+                    int count = rs.getInt("cnt");
+                    article = new Article(listid, memberid, title, contents, createtime, modifytime, count);
+
+                    if (!rs.next()) {
+                        break;
+                    }
+                }
             }
-            targetidx = postidx;
 
 
         } catch (Exception e) {
@@ -182,9 +192,8 @@ public class ArticleDao {
             } catch (Exception e) {
                 e.printStackTrace();
             }
+            return article;
         }
-
-        return targetidx;
     }
 
     public void modify(int targetid, String title, String content) {
@@ -193,15 +202,13 @@ public class ArticleDao {
         ResultSet rs = null; // 결과 받아오는 객체
 
         try {
-
             conn = loginDBServer();
             stmt = conn.createStatement();
 
             String sql = String.format("UPDATE article SET title = '%s', content = '%s', modifytime = '%s' WHERE articleindex = '%d'",
                     title, content, Util.getCurrentTime(), targetid);
             stmt.executeUpdate(sql);
-            // 이 메서드는 INSERT, UPDATE 또는 DELETE 문과 같은 데이터베이스를 수정하는 SQL 문을 실행하고
-            // 변경된 행의 수를 반환합니다.
+
 
             System.out.println("게시글이 수정되었습니다");
 
@@ -226,7 +233,7 @@ public class ArticleDao {
         }
     }
 
-    public void delete(int targetid) {
+    public void delete(Article article) {
 
         Connection conn = null;
         Statement stmt = null; // SQL 전송하는 객체
@@ -237,11 +244,12 @@ public class ArticleDao {
             conn = loginDBServer();
             stmt = conn.createStatement();
 
+            int targetid = article.getArticleIndex();
 
             String sql = String.format("DELETE FROM article WHERE articleindex='%d'", targetid);
             stmt.executeUpdate(sql);
 
-            System.out.println(targetid + "번 주소록이 삭제되었습니다.");
+            System.out.println(targetid + "번 게시글이 삭제되었습니다.");
 
         } catch (Exception e) {
             System.out.println("SQL 실행 중 오류 발생!!");
