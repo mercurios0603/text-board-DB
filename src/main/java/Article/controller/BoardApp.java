@@ -1,9 +1,7 @@
 package Article.controller;
 
-import Article.model.Article;
 import Article.model.Member;
 
-import java.util.ArrayList;
 import java.util.Scanner;
 
 public class BoardApp {
@@ -38,10 +36,6 @@ public class BoardApp {
                 articleController.page();
             } else if (cmd.equals("detail")) {
                 articleController.detail(loginedmember);
-            } else if (cmd.equals("update")) {
-                articleController.update();
-            } else if (cmd.equals("delete")) {
-                articleController.delete();
             } else if (cmd.equals("search")) {
                 articleController.search();
             } else if (cmd.equals("signup")) {

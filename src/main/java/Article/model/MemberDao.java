@@ -12,9 +12,6 @@ public class MemberDao {
 
     ArrayList<Member> members = new ArrayList<>();
 
-    public MemberDao() {
-    }
-
     public Connection loginDBServer() {
 
         Connection conn = null; // DB 접속하는 객체
@@ -30,7 +27,7 @@ public class MemberDao {
             // 2. Connection 획득
             conn = DriverManager.getConnection(url, user, pass);
 
-            System.out.println("DB 접속 완료");
+            System.out.println("DB 접속 완료 - Member");
 
 //            rs.next(); // 화살표를 한칸 내림.
 //            rs.next(); // 다음 행이 있으면 true, 없으면 false 반환 (즉 while 반복문에서 false가 되면 종료됨)
@@ -138,5 +135,51 @@ public class MemberDao {
             }
         }
         return sessions;
+    }
+
+    public Member getMemberById(String id) {
+
+        Connection conn = null;
+        Statement stmt = null;
+        ResultSet rs = null;
+
+        Member member = null;
+
+        try {
+            conn = loginDBServer();
+            stmt = conn.createStatement();
+
+            String sql = String.format("SELECT * FROM member WHERE memberid = '%s'", id);
+            rs = stmt.executeQuery(sql);
+
+            while (rs.next()) {
+                int memberindex = rs.getInt("memberindex");
+                String membername = rs.getString("membername");
+                String memberid = rs.getString("memberid");
+                String memberpassword = rs.getString("memberpassword");
+                String membernickname = rs.getString("membernickname");
+                member = new Member(memberindex, membername, memberid, memberpassword, membernickname);
+            }
+
+        } catch (Exception e) {
+            System.out.println("SQL 실행 중 오류 발생!!");
+            e.printStackTrace();
+        } finally {
+
+            try {
+                if (rs != null) {
+                    rs.close();
+                }
+                if (stmt != null) {
+                    stmt.close();
+                }
+                if (conn != null) {
+                    conn.close();
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        return member;
     }
 }
